@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Memo Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; padding: 1rem; }
+        audio { width: 100%; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>{{ memo.summary|default:"Voice Memo" }}</h1>
+    <p><strong>Created:</strong> {{ memo.created_at|date:"M d, H:i" }}</p>
+    <p><strong>Transcript:</strong><br>{{ memo.transcript }}</p>
+    {% if memo.llm_response %}
+        <p><strong>LLM Response:</strong><br>{{ memo.llm_response }}</p>
+    {% endif %}
+    <p><a href="{% url 'memo_list' %}">← Back to all memos</a></p>
+</body>
+</html>

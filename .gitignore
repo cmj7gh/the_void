@@ -1,0 +1,6 @@
+.env
+__pycache__
+voice_memos/*
+.venv
+*.sqlite3
+*.db

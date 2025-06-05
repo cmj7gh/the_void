@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        IMAGE: python:3.11
+    volumes:
+      - .:/workspace:cached
+    environment:
+      DBHOST: postgres
+      DBUSER: admin
+      DBNAME: postgres
+      DBPASS: LocalPasswordOnly
+    command: sleep infinity
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: LocalPasswordOnly
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+volumes:
+  postgres-data:
+
+networks:
+  internal:

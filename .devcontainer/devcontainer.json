@@ -1,0 +1,28 @@
+{
+  "name": "the_void_dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [5432, 8000],
+  "portsAttributes": {
+    "5432": { "label": "PostgreSQL" },
+    "8000": { "label": "The Void" }
+  },
+  "overrideCommand": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    },
+    "github.copilot.enable": {
+    "*": true,
+    "python": false
+    }
+  },
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "pip install -r requirements.txt",
+  "remoteUser": "vscode"
+  
+}

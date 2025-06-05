@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Voice Memos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; padding: 1rem; }
+        .memo { margin-bottom: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
+        .summary { font-weight: bold; }
+        a { text-decoration: none; color: #0066cc; }
+    </style>
+</head>
+<body>
+    <h1>My Memos</h1>
+    {% for memo in memos %}
+        <div class="memo">
+            <div class="summary">{{ memo.summary|default:"(No summary)" }}</div>
+            <div>{{ memo.created_at|date:"M d, H:i" }}</div>
+            <div><a href="{% url 'memo_detail' memo.pk %}">View details</a></div>
+            <div>{{ memo.llm_response|truncatechars:150 }}</div>
+        </div>
+    {% empty %}
+        <p>No memos recorded yet.</p>
+    {% endfor %}
+
+    <a href="{% url 'upload' %}">New Memo</a>
+    <a href="{% url 'upload_text' %}">New Text Memo</a>
+</body>
+</html>

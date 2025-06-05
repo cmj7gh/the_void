@@ -1,0 +1,16 @@
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Summary</th>
+        <th>Time</th>
+        <th>Transcript</th>
+        <th>LLM Response</th>
+    </tr>
+    {% for memo in memos %}
+    <tr>
+        <td>{{ memo.summary|default:"(No summary)" }}</td>
+        <td>{{ memo.created_at|date:"H:i" }}</td>
+        <td><a href="http://yourdomain.local/memos/{{ memo.id }}">View</a></td>
+        <td>{{ memo.llm_response|truncatechars:150 }}</td>
+    </tr>
+    {% endfor %}
+</table>
