@@ -95,6 +95,8 @@
     let audioChunks = [];
     let audioContext, analyser, dataArray, source, animationId;
     let audioBlob, audioURL;
+    let usingFallback = false;
+    let fallbackRecorder, fallbackStream;
 
     const recordBtn = document.getElementById('recordBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -130,9 +132,8 @@
       canvasCtx.stroke();
     }
 
-    recordBtn.addEventListener('click', async () => {
+    async function startRecording() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
 
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -144,44 +145,102 @@
 
       drawWaveform();
 
-      mediaRecorder.ondataavailable = event => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-      };
+      if (window.MediaRecorder) {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+        mediaRecorder.onstop = () => {
+          cancelAnimationFrame(animationId);
+          canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+          source.disconnect();
+          audioContext.close();
 
-      mediaRecorder.onstop = () => {
-        cancelAnimationFrame(animationId);
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-        source.disconnect();
-        audioContext.close();
+          audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioURL = URL.createObjectURL(audioBlob);
 
-        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        audioURL = URL.createObjectURL(audioBlob);
+          const file = new File([audioBlob], 'memo.webm', { type: 'audio/webm' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          audioInput.files = dataTransfer.files;
 
-        const file = new File([audioBlob], 'memo.webm', { type: 'audio/webm' });
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        audioInput.files = dataTransfer.files;
+          audioPreview.src = audioURL;
+          audioPreview.style.display = 'block';
 
-        audioPreview.src = audioURL;
-        audioPreview.style.display = 'block';
-
-        playBtn.disabled = false;
-        submitBtn.disabled = false;
-        status.textContent = "Recording ready to submit.";
-      };
-
-      mediaRecorder.start();
+          playBtn.disabled = false;
+          submitBtn.disabled = false;
+          status.textContent = "Recording ready to submit.";
+        };
+        mediaRecorder.start();
+        usingFallback = false;
+      } else {
+        // Fallback: use recorder.js
+        usingFallback = true;
+        fallbackStream = stream;
+        fallbackRecorder = new Recorder(source, { numChannels: 1 });
+        fallbackRecorder.record();
+      }
       status.textContent = "Recording...";
       recordBtn.disabled = true;
       stopBtn.disabled = false;
+    }
+
+    function stopRecording() {
+      if (!usingFallback) {
+        mediaRecorder.stop();
+      } else {
+        fallbackRecorder.stop();
+        fallbackRecorder.exportWAV(blob => {
+          cancelAnimationFrame(animationId);
+          canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+          source.disconnect();
+          audioContext.close();
+          fallbackStream.getTracks().forEach(track => track.stop());
+
+          audioBlob = blob;
+          audioURL = URL.createObjectURL(audioBlob);
+
+          const file = new File([audioBlob], 'memo.wav', { type: 'audio/wav' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          audioInput.files = dataTransfer.files;
+
+          audioPreview.src = audioURL;
+          audioPreview.style.display = 'block';
+
+          playBtn.disabled = false;
+          submitBtn.disabled = false;
+          status.textContent = "Recording ready to submit.";
+        });
+      }
+      recordBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    recordBtn.addEventListener('click', async () => {
+      if (window.MediaRecorder) {
+        await startRecording();
+      } else if (window.Recorder) {
+        await startRecording();
+      } else {
+        // Dynamically load recorder.js if not already loaded
+        status.textContent = "Loading recorder support...";
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/recorder-js@1.0.3/dist/recorder.js";
+        script.onload = async () => {
+          await startRecording();
+        };
+        script.onerror = () => {
+          status.textContent = "Recording not supported on this device.";
+        };
+        document.body.appendChild(script);
+      }
     });
 
     stopBtn.addEventListener('click', () => {
-      mediaRecorder.stop();
-      recordBtn.disabled = false;
-      stopBtn.disabled = true;
+      stopRecording();
     });
 
     playBtn.addEventListener('click', () => {

@@ -8,6 +8,30 @@
         .memo { margin-bottom: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
         .summary { font-weight: bold; }
         a { text-decoration: none; color: #0066cc; }
+        .action-btn {
+            background-color: #007bff;
+            color: white;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            margin: 0.5rem 0.25rem 0 0;
+            width: 100%;
+            max-width: 300px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+        }
+        .action-btn:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        @media (min-width: 600px) {
+            .action-btn {
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -23,7 +47,7 @@
         <p>No memos recorded yet.</p>
     {% endfor %}
 
-    <a href="{% url 'upload' %}">New Memo</a>
-    <a href="{% url 'upload_text' %}">New Text Memo</a>
+    <a href="{% url 'upload' %}" class="action-btn">New Memo</a>
+    <a href="{% url 'upload_text' %}" class="action-btn">New Text Memo</a>
 </body>
 </html>
